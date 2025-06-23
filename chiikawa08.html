@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chiikawa萌趣世界</title>
+  <!-- 引入Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 引入Font Awesome -->
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  
+  <!-- 配置Tailwind自定义颜色和字体 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'chiikawa-pink': '#FFB6C1',
+            'chiikawa-blue': '#87CEEB',
+            'chiikawa-purple': '#DDA0DD',
+            'chiikawa-orange': '#FFA07A',
+          },
+          fontFamily: {
+            'chiikawa': ['"Comic Sans MS"', '"Marker Felt"', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  
+  <!-- 自定义工具类 -->
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .animate-float {
+        animation: float 3s ease-in-out infinite;
+      }
+      .animate-float-slow {
+        animation: float 5s ease-in-out infinite;
+      }
+      .animate-float-fast {
+        animation: float 2s ease-in-out infinite;
+      }
+      .card-shadow {
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      }
+      .animate-ribbon {
+        animation: ribbon 8s linear infinite;
+      }
+      .animate-ribbon-delay-1 {
+        animation: ribbon 10s linear 1s infinite;
+      }
+      .animate-ribbon-delay-2 {
+        animation: ribbon 12s linear 2s infinite;
+      }
+      .animate-ribbon-delay-3 {
+        animation: ribbon 9s linear 3s infinite;
+      }
+      .animate-ribbon-delay-4 {
+        animation: ribbon 11s linear 4s infinite;
+      }
+    }
+    
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+    
+    @keyframes ribbon {
+      0% { transform: translateY(-100%) rotate(0deg); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+    }
+    
+    /* 轮播动画 */
+    @keyframes seamless-scroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+  </style>
+  
+  <!-- 彩带样式 -->
+  <style>
+    .ribbon {
+      position: fixed;
+      top: -50px;
+      width: 10px;
+      height: 100px;
+      opacity: 0;
+      z-index: 999;
+      pointer-events: none;
+    }
+    
+    .ribbon-pink { background-color: #FFB6C1; }
+    .ribbon-blue { background-color: #87CEEB; }
+    .ribbon-purple { background-color: #DDA0DD; }
+    .ribbon-orange { background-color: #FFA07A; }
+    
+    /* 轮播容器样式 */
+    .carousel-wrapper {
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .carousel-track {
+      display: flex;
+      width: 200%;
+      animation: seamless-scroll 40s linear infinite; 
+    }
+    
+    .carousel-track:hover {
+      animation-play-state: paused;
+    }
+    
+    .carousel-item {
+      width: 300px !important;
+      height: 300px !important;
+      flex-shrink: 0 !important;
+      margin: 0 8px;         
+    }
+    
+    .carousel-item img {
+      width: 100% !important;  
+      height: 100% !important; 
+      object-fit: cover !important; 
+      border-radius: 0.75rem;
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body class="bg-gray-50 font-chiikawa">
+  <!-- 导航栏 -->
+  <nav id="navbar" class="fixed w-full bg-white shadow-md z-50 transition-all duration-300">
+    <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+      <a href="#" class="text-2xl font-bold text-chiikawa-pink flex items-center">
+        <i class="fa fa-paw mr-2 animate-float-slow"></i> Chiikawa 萌趣世界
+      </a>
+      
+      <!-- 桌面导航 -->
+      <ul class="hidden md:flex space-x-6">
+        <li><a href="#" class="text-gray-700 hover:text-chiikawa-pink transition-colors duration-300">首页</a></li>
+        <li><a href="#" class="text-gray-700 hover:text-chiikawa-pink transition-colors duration-300">所有角色</a></li>
+        <li><a href="#" class="text-gray-700 hover:text-chiikawa-pink transition-colors duration-300">相册墙</a></li>
+        <li><a href="#" class="text-gray-700 hover:text-chiikawa-pink transition-colors duration-300">视频</a></li>
+        <li><a href="#" class="text-gray-700 hover:text-chiikawa-pink transition-colors duration-300">音乐</a></li>
+        <li><a href="#" class="text-gray-700 hover:text-chiikawa-pink transition-colors duration-300">留言</a></li>
+      </ul>
+      
+      <!-- 移动端菜单按钮 -->
+      <button id="menuToggle" class="md:hidden text-gray-700 focus:outline-none">
+        <i class="fa fa-bars text-xl"></i>
+      </button>
+    </div>
+    
+    <!-- 移动端导航菜单 -->
+    <div id="mobileMenu" class="md:hidden bg-white shadow-lg absolute w-full left-0 top-full transform -translate-y-full opacity-0 transition-all duration-300 invisible">
+      <ul class="px-4 py-2 space-y-3">
+        <li><a href="#" class="block py-2 text-gray-700 hover:text-chiikawa-pink transition-colors duration-300">首页</a></li>
+        <li><a href="#" class="block py-2 text-gray-700 hover:text-chiikawa-pink transition-colors duration-300">相册墙</a></li>
+        <li><a href="#" class="block py-2 text-gray-700 hover:text-chiikawa-pink transition-colors duration-300">角色介绍</a></li>
+        <li><a href="#" class="block py-2 text-gray-700 hover:text-chiikawa-pink transition-colors duration-300">人物展</a></li>
+        <li><a href="#" class="block py-2 text-gray-700 hover:text-chiikawa-pink transition-colors duration-300">动画短片</a></li>
+        <li><a href="#" class="block py-2 text-gray-700 hover:text-chiikawa-pink transition-colors duration-300">留言</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- 连续轮播区域 -->
+  <section class="pt-20 relative overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-r from-chiikawa-pink/20 to-chiikawa-blue/20"></div>
+    <div class="relative container mx-auto px-4 py-12">
+      <h2 class="text-[clamp(2rem,5vw,3.5rem)] font-bold text-center text-chiikawa-pink mb-8 animate-float-slow">
+        <i class="fa fa-heart text-chiikawa-pink animate-pulse"></i> Chiikawa 照片精选
+      </h2>
+      
+      <!-- 连续轮播容器 -->
+      <div class="carousel-wrapper w-full">
+        <div class="carousel-track" id="carouselTrack">
+         
+          <div class="carousel-item">
+            <img src="images/chiikawa01.jpg" alt="Chiikawa角色图片1">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa02.jpg" alt="Chiikawa角色图片2">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa03.jpg" alt="Chiikawa角色图片3">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa04.jpg" alt="Chiikawa角色图片4">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa05.jpg" alt="Chiikawa角色图片5">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa06.jpg" alt="Chiikawa角色图片6">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa07.jpg" alt="Chiikawa角色图片7">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa08jpg.jpg" alt="Chiikawa角色图片8">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa09.jpg" alt="Chiikawa角色图片9">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa10.jpg" alt="Chiikawa角色图片10">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa11.jpg" alt="Chiikawa角色图片11">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa12.jpg" alt="Chiikawa角色图片12">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa13jpg.jpg" alt="Chiikawa角色图片13">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa14.jpg" alt="Chiikawa角色图片14">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa15.jpg" alt="Chiikawa角色图片15">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa16.jpg" alt="Chiikawa角色图片16">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa17.jpg" alt="Chiikawa角色图片17">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa18.jpg" alt="Chiikawa角色图片18">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa19.jpg" alt="Chiikawa角色图片19">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa20.jpg" alt="Chiikawa角色图片20">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa21.jpg" alt="Chiikawa角色图片21">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa22jpg.jpg" alt="Chiikawa角色图片22">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa23.jpg" alt="Chiikawa角色图片23">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa24.jpg" alt="Chiikawa角色图片24">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa25.jpg" alt="Chiikawa角色图片25">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa26.jpg" alt="Chiikawa角色图片26">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa27.jpg" alt="Chiikawa角色图片27">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa28.jpg" alt="Chiikawa角色图片28">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa29.jpg" alt="Chiikawa角色图片29">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa30.jpg" alt="Chiikawa角色图片30">
+          </div>
+          <!-- 复制图片（用于无缝滚动） -->
+          <div class="carousel-item">
+            <img src="images/chiikawa01.jpg" alt="Chiikawa角色图片1">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa02.jpg" alt="Chiikawa角色图片2">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa03.jpg" alt="Chiikawa角色图片3">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa04.jpg" alt="Chiikawa角色图片4">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa05.jpg" alt="Chiikawa角色图片5">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa06.jpg" alt="Chiikawa角色图片6">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa07.jpg" alt="Chiikawa角色图片7">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa08jpg.jpg" alt="Chiikawa角色图片8">
+          </div>
+           <div class="carousel-item">
+            <img src="images/chiikawa09.jpg" alt="Chiikawa角色图片9">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa10.jpg" alt="Chiikawa角色图片10">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa11.jpg" alt="Chiikawa角色图片11">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa12.jpg" alt="Chiikawa角色图片12">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa13jpg.jpg" alt="Chiikawa角色图片13">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa14.jpg" alt="Chiikawa角色图片14">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa15.jpg" alt="Chiikawa角色图片15">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa16.jpg" alt="Chiikawa角色图片16">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa17.jpg" alt="Chiikawa角色图片17">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa18.jpg" alt="Chiikawa角色图片18">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa19.jpg" alt="Chiikawa角色图片19">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa20.jpg" alt="Chiikawa角色图片20">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa21.jpg" alt="Chiikawa角色图片21">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa22jpg.jpg" alt="Chiikawa角色图片22">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa23.jpg" alt="Chiikawa角色图片23">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa24.jpg" alt="Chiikawa角色图片24">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa25.jpg" alt="Chiikawa角色图片25">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa26.jpg" alt="Chiikawa角色图片26">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa27.jpg" alt="Chiikawa角色图片27">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa28.jpg" alt="Chiikawa角色图片28">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa29.jpg" alt="Chiikawa角色图片29">
+          </div>
+          <div class="carousel-item">
+            <img src="images/chiikawa30.jpg" alt="Chiikawa角色图片30">
+          </div>
+        </div>
+      </div>
+      
+      <!-- 轮播指示器 -->
+      <div class="flex justify-center mt-8 space-x-2">
+        
+        <button class="w-3 h-3 rounded-full bg-chiikawa-pink opacity-100"></button>
+        <button class="w-3 h-3 rounded-full bg-chiikawa-pink opacity-50"></button>
+        <button class="w-3 h-3 rounded-full bg-chiikawa-pink opacity-50"></button>
+        <button class="w-3 h-3 rounded-full bg-chiikawa-pink opacity-50"></button>
+        <button class="w-3 h-3 rounded-full bg-chiikawa-pink opacity-50"></button>
+        <button class="w-3 h-3 rounded-full bg-chiikawa-pink opacity-50"></button>
+        <button class="w-3 h-3 rounded-full bg-chiikawa-pink opacity-50"></button>
+        <button class="w-3 h-3 rounded-full bg-chiikawa-pink opacity-50"></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 四个卡片式人物介绍 -->
+  <section class="py-16 bg-white">
+    <div class="container mx-auto px-4">
+      <h2 class="text-[clamp(1.8rem,4vw,2.5rem)] font-bold text-center text-gray-800 mb-12">
+        <i class="fa fa-star text-chiikawa-pink animate-pulse"></i> 主要角色介绍
+      </h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <!-- 卡片1 -->
+        <div class="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 card-shadow">
+          <div class="flex flex-col">
+            <div class="w-full aspect-square relative bg-chiikawa-pink">
+              <img src="images/chiikawa0000.jpg" alt="乌萨奇" class="w-full h-full object-cover mix-blend-overlay">
+              <div class="absolute inset-0 flex items-center justify-center">
+                <i class="fa fa-heart text-white text-5xl animate-float"></i>
+              </div>
+            </div>
+            <div class="p-6">
+              <h3 class="text-xl font-bold text-gray-800 mb-2">乌萨奇</h3>
+              <p class="text-gray-600 mb-4">是神经大条的兔子，十足的小吃货，直觉敏锐，身姿矫健调皮捣乱，自由奔放又神秘，住所是迷，多才多艺</p>
+              <div class="flex justify-between items-center">
+                <span class="text-chiikawa-pink font-medium">查看详情</span>
+                <i class="fa fa-arrow-right text-chiikawa-pink"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 卡片2 -->
+        <div class="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 card-shadow">
+          <div class="flex flex-col">
+            <div class="w-full aspect-square relative bg-chiikawa-blue">
+              <img src="images/chiikawa0001.jpg" alt="小八" class="w-full h-full object-cover mix-blend-overlay">
+              <div class="absolute inset-0 flex items-center justify-center">
+                <i class="fa fa-paw text-white text-5xl animate-float"></i>
+              </div>
+            </div>
+            <div class="p-6">
+              <h3 class="text-xl font-bold text-gray-800 mb-2">小八</h3>
+              <p class="text-gray-600 mb-4">是乐观开朗的猫咪，对待朋友真诚，e人属性尽显，阳光开朗，能完整说人类语言，好奇心旺盛</p>
+              <div class="flex justify-between items-center">
+                <span class="text-chiikawa-blue font-medium">查看详情</span>
+                <i class="fa fa-arrow-right text-chiikawa-blue"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 卡片3  -->
+        <div class="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 card-shadow">
+          <div class="flex flex-col">
+            <div class="w-full aspect-square relative bg-chiikawa-purple">
+              <img src="images/chiikawa0002.jpg" alt="吉伊" class="w-full h-full object-cover mix-blend-overlay">
+              <div class="absolute inset-0 flex items-center justify-center">
+                <i class="fa fa-star text-white text-5xl animate-float"></i>
+              </div>
+            </div>
+            <div class="p-6">
+              <h3 class="text-xl font-bold text-gray-800 mb-2">吉伊</h3>
+              <p class="text-gray-600 mb-4">是只脆弱敏感的小仓鼠，虽常被称作爱哭鬼，关键时刻勇敢重情义，靠丰富肢体语言和拟声表达内心</p>
+              <div class="flex justify-between items-center">
+                <span class="text-chiikawa-purple font-medium">查看详情</span>
+                <i class="fa fa-arrow-right text-chiikawa-purple"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 卡片4 -->
+        <div class="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 card-shadow">
+          <div class="flex flex-col">
+            <div class="w-full aspect-square relative bg-chiikawa-orange">
+              <img src="images/chiikawa0003.jpg" alt="莫莫咖" class="w-full h-full object-cover mix-blend-overlay">
+              <div class="absolute inset-0 flex items-center justify-center">
+                <i class="fa fa-smile-o text-white text-5xl animate-float"></i>
+              </div>
+            </div>
+            <div class="p-6">
+              <h3 class="text-xl font-bold text-gray-800 mb-2">莫莫咖</h3>
+              <p class="text-gray-600 mb-4">原本并不是飞鼠，为尽情地装可爱而掠夺了他人的身体，有点坏坏的，但因可爱外表被很多人喜欢</p>
+              <div class="flex justify-between items-center">
+                <span class="text-chiikawa-orange font-medium">查看详情</span>
+                <i class="fa fa-arrow-right text-chiikawa-orange"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-10 bg-gray-50">
+  <div class="container mx-auto px-4">
+    <!-- 标题与图片组合区域 -->
+    <div class="flex flex-col md:flex-row items-start md:items-center gap-6">
+      <!-- 左侧标题区域 -->
+      <div class="writing-mode vertical-rl transform rotate-180 md:rotate-0 flex-shrink-0">
+        <h2 class="text-[clamp(2rem,5vw,4rem)] font-bold text-gray-800 flex items-center space-x-2">
+          <span class="block">人<br>物<br>展</span>
+          <span class="text-xl text-pink-300">
+            <i class="fa fa-picture-o"></i>
+          </span>
+        </h2>
+      </div>
+
+      <!-- 右侧图片区域 -->
+      <div class="flex-1 overflow-x-auto">
+          <div class="flex gap-4 min-w-max">
+           
+            <div class="w-40 h-40 rounded-full border-4 border-white shadow-xl overflow-hidden flex-shrink-0"
+              onclick="showModal('乌萨奇', '★( usagi乌萨奇)乌萨奇是只小兔子，主角团之一，吉伊和哈奇的好朋友。十足的小吃货。是吉伊的第一个朋友。乌萨奇时常发出“咿呀哈等怪声，直觉敏锐，自由奔放又神秘的存在。住所至今是谜，武器是两端能发射火药的棍子。')">
+              <img src="images/chiikawa000.jpg" alt="角色1" class="w-full h-full object-cover">
+            </div>
+            <div class="w-40 h-40 rounded-full border-4 border-white shadow-xl overflow-hidden flex-shrink-0"
+              onclick="showModal('吉伊', '★( chikawa吉伊 )我们的小仓鼠主角， 是个爱哭鬼但是关键时刻特别勇敢。台词很少，基本使用行动和拟声词来表达。还好周围有很多善良友善的朋友帮助着他。为了除草五级不断学习中。')">
+              <img src="images/chiikawa001.jpg" alt="角色2" class="w-full h-full object-cover">
+            </div>
+            <div class="w-40 h-40 rounded-full border-4 border-white shadow-xl overflow-hidden flex-shrink-0"
+              onclick="showModal('小八', '★( hachiware小八)小八是猫咪，对待朋友很真诚，但是个话唠。主角团中唯一能完整使用人类语言说话的存在。除草5级。好奇心旺盛的乐天派，偶尔会露出天然的一面。')">
+              <img src="images/chiikawa002.jpg" alt="角色3" class="w-full h-full object-cover">
+            </div>
+            <div class="w-40 h-40 rounded-full border-4 border-white shadow-xl overflow-hidden flex-shrink-0"
+              onclick="showModal('莫莫咖', '★( momonga莫莫咖)莫莫咖是只飞鼠，其实它原本并不是飞鼠，是为了能够“尽情地装可爱”掠夺了他人的身体。虽然是有点坏坏的角色，但却因为可爱的外表而被很多人喜欢。')">
+              <img src="images/chiikawa003.jpg" alt="角色4" class="w-full h-full object-cover">
+            </div>
+            <div class="w-40 h-40 rounded-full border-4 border-white shadow-xl overflow-hidden flex-shrink-0"
+              onclick="showModal('栗子馒头', '★(栗子馒头)栗子馒头是喝酒爱好者，是沉稳成熟的大叔形象。因为太会吃被粉丝成为“菇独的美食家”。它还会保护受欺负的小可爱。')">
+              <img src="images/chiikawa004.jpg" alt="角色5" class="w-full h-full object-cover">
+            </div>
+            <div class="w-40 h-40 rounded-full border-4 border-white shadow-xl overflow-hidden flex-shrink-0"
+              onclick="showModal('狮萨', '★(狮萨）狮萨的原型是冲绳的神兽「风狮爷」是个非常努力勤奋，乐观开朗宝宝，珍惜当下每一天。持有非常难的超级打工者资格证，在「郎」拉面店工作，为了和师傅饮酒，正在考取饮酒资格证。此外，狮萨虽然学习能力非常强，但是不擅长讨伐。')">
+              <img src="images/chiikawa005.jpg" alt="角色6" class="w-full h-full object-cover">
+            </div>
+            <div class="w-40 h-40 rounded-full border-4 border-white shadow-xl overflow-hidden flex-shrink-0"
+              onclick="showModal('海癞', '★( rakko海獭)海獭的额头上有一道刀疤，时长背着大剑，还会发出帅哥的声音。曾经帮过吉伊，是小可爱们的崇拜对象。虽然拥有冷酷的外表，但是藏着一颗喜爱甜食的心，每次吃甜品都会露出可爱的表情。')">
+              <img src="images/chiikawa006.jpg" alt="角色7" class="w-full h-full object-cover">
+            </div>
+            <div class="w-40 h-40 rounded-full border-4 border-white shadow-xl overflow-hidden flex-shrink-0"
+              onclick="showModal('古本', '★（古本）古本的原型是鼹鼠。古本最初的样子只是个卖二手书的小黑路人，非常喜欢看书，家里堆满了书，但是和莫莫咖成为朋友，她的面貌才被描绘出来，头上戴着莫莫咖送的发箍，因为友谊，古本的世界出现了色彩。')">
+              <img src="images/chiikawa007.jpg" alt="角色8" class="w-full h-full object-cover">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+</section>
+<!-- 模态框 -->
+  <div id="myModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+    <div class="bg-white p-6 rounded-lg">
+      <h2 id="modalTitle" class="text-xl font-bold mb-2"></h2>
+      <p id="modalContent" class="text-gray-600 mb-4"></p>
+      <button onclick="hideModal()" class="px-6 py-3 bg-chiikawa-pink text-white rounded-full shadow-md hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300">
+        关闭
+      </button>
+    </div>
+  </div>
+  <!-- 视频和介绍区域 -->
+  <section class="py-16 bg-gray-50">
+    <div class="container mx-auto px-4">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <!-- 视频区域 -->
+<div class="rounded-2xl overflow-hidden shadow-xl transform hover:scale-[1.02] transition-transform duration-500">
+  <div class="aspect-video bg-black relative">
+    <video class="w-full h-full object-cover opacity-80" controls>
+      <source src="images/chiikawa video.mp4" type="video/mp4">
+      您的浏览器不支持视频播放。
+    </video>
+  </div>
+  <div class="p-6 bg-white">
+    <h3 class="text-xl font-bold text-gray-800 mb-2">Chiikawa 动画短片</h3>
+    <p class="text-gray-600">点击观看 Chiikawa 和朋友们的故事，一起探索奇妙森林！</p>
+  </div>
+</div>
+        
+        <!-- 介绍区域 -->
+        <div>
+          <h2 class="text-[clamp(1.8rem,4vw,2.5rem)] font-bold text-gray-800 mb-6">
+            <i class="fa fa-book text-chiikawa-pink"></i> Chiikawa 萌趣世界
+          </h2>
+          <p class="text-gray-700 text-lg mb-6 leading-relaxed">
+            Chiikawa（吉伊卡哇）是日本漫画家NAGANO创作的热门IP，围绕仓鼠吉伊、猫形生物小八、兔子乌萨奇等小动物展开，讲述它们在虚构世界里的日常趣事与冒险故事，画风软萌治愈
+          </p>
+          <p class="text-gray-700 text-lg mb-8 leading-relaxed">
+               其剧情融入打工、考证等现实元素，借小动物视角映射当代人生活，引发强烈共鸣。通过魔性表情包、丰富商业联名等广泛传播，成为当代青年精神图腾，传递陪伴与友谊的温暖力量  
+          </p>
+          
+          <div class="flex flex-wrap gap-4">
+            <a href="#" class="px-6 py-3 bg-chiikawa-pink text-white rounded-full shadow-md hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300">
+              <i class="fa fa-heart mr-2"></i> 了解更多
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 留言表单区域 -->
+<section class="py-16 bg-white">
+  <div class="container mx-auto px-4">
+    <h2 class="text-[clamp(1.8rem,4vw,2.5rem)] font-bold text-center text-gray-800 mb-12">
+      <i class="fa fa-comments text-chiikawa-pink animate-pulse"></i> 给Chiikawa留言
+    </h2>
+    
+    <form id="contactForm" class="max-w-lg mx-auto">
+      <input type="text" name="name" 
+             class="w-full px-4 py-2 mb-4 rounded-lg border focus:outline-none focus:border-chiikawa-pink" 
+             placeholder="姓名" required>
+      
+      <textarea name="message" 
+                class="w-full px-4 py-2 mb-4 rounded-lg border focus:outline-none focus:border-chiikawa-pink" 
+                placeholder="留言内容" rows="4" required></textarea>
+      
+      <button type="submit" class="w-full px-6 py-2 bg-chiikawa-pink text-white rounded-full shadow-md hover:shadow-lg">
+        <i class="fa fa-paper-plane mr-2"></i> 提交留言
+      </button>
+    </form>
+  </div>
+</section>
+
+  <!-- 页脚 -->
+  <footer class="bg-gray-800 text-white py-12">
+    <div class="container mx-auto px-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div>
+          <h3 class="text-xl font-bold mb-4">Chiikawa 萌趣世界</h3>
+          <p class="text-gray-400 mb-6">这里是Chiikawa和朋友们的奇妙世界，充满了无限的欢乐和惊喜！</p>
+          <div class="flex space-x-4">
+            <a href="#" class="text-gray-400 hover:text-chiikawa-pink transition-colors duration-300">
+              <i class="fa fa-facebook"></i>
+            </a>
+            <a href="#" class="text-gray-400 hover:text-chiikawa-pink transition-colors duration-300">
+              <i class="fa fa-twitter"></i>
+            </a>
+            <a href="#" class="text-gray-400 hover:text-chiikawa-pink transition-colors duration-300">
+              <i class="fa fa-instagram"></i>
+            </a>
+            <a href="#" class="text-gray-400 hover:text-chiikawa-pink transition-colors duration-300">
+              <i class="fa fa-youtube-play"></i>
+            </a>
+          </div>
+        </div>
+        
+        <div>
+          <h3 class="text-xl font-bold mb-4">快速链接</h3>
+          <ul class="space-y-2">
+            <li><a href="#" class="text-gray-400 hover:text-chiikawa-pink transition-colors duration-300">首页</a></li>
+            <li><a href="#" class="text-gray-400 hover:text-chiikawa-pink transition-colors duration-300">相册墙</a></li>
+            <li><a href="#" class="text-gray-400 hover:text-chiikawa-pink transition-colors duration-300">角色介绍</a></li>
+            <li><a href="#" class="text-gray-400 hover:text-chiikawa-pink transition-colors duration-300">人物展</a></li>
+            <li><a href="#" class="text-gray-400 hover:text-chiikawa-pink transition-colors duration-300">视频</a></li>
+            <li><a href="#" class="text-gray-400 hover:text-chiikawa-pink transition-colors duration-300">留言</a></li>
+          </ul>
+        </div>
+        
+        <div>
+          <h3 class="text-xl font-bold mb-4">联系我们</h3>
+          <ul class="space-y-2">
+            <li class="flex items-center">
+              <i class="fa fa-envelope-o mr-2 text-chiikawa-pink"></i>
+              <span class="text-gray-400">contact@maker.chiikawa.com</span>
+            </li>
+            <li class="flex items-center">
+              <i class="fa fa-phone mr-2 text-chiikawa-pink"></i>
+              <span class="text-gray-400">+81 123 45678</span>
+            </li>
+            <li class="flex items-center">
+              <i class="fa fa-map-marker mr-2 text-chiikawa-pink"></i>
+              <span class="text-gray-400">江苏省无锡市滨湖区</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="border-t border-gray-700 mt-10 pt-6 text-center text-gray-500">
+        <p>&copy; 2025 Chiikawa 萌趣世界. 保留所有权利.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- JavaScript -->
+  <script>
+    // 导航菜单切换
+    const menuToggle = document.getElementById('menuToggle');
+    const mobileMenu = document.getElementById('mobileMenu');
+    
+    menuToggle.addEventListener('click', () => {
+      if (mobileMenu.classList.contains('invisible')) {
+        mobileMenu.classList.remove('invisible', 'opacity-0', '-translate-y-full');
+        mobileMenu.classList.add('opacity-100', 'translate-y-0');
+        menuToggle.innerHTML = '<i class="fa fa-times text-xl"></i>';
+      } else {
+        mobileMenu.classList.add('opacity-0', '-translate-y-full');
+        mobileMenu.classList.remove('opacity-100', 'translate-y-0');
+        setTimeout(() => {
+          mobileMenu.classList.add('invisible');
+        }, 300);
+        menuToggle.innerHTML = '<i class="fa fa-bars text-xl"></i>';
+      }
+    });
+    
+    // 导航栏滚动效果
+    const navbar = document.getElementById('navbar');
+    
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 50) {
+        navbar.classList.add('py-2');
+        navbar.classList.remove('py-3');
+        navbar.classList.add('shadow-lg');
+      } else {
+        navbar.classList.add('py-3');
+        navbar.classList.remove('py-2');
+        navbar.classList.remove('shadow-lg');
+      }
+    });
+    
+    // 彩带效果
+    function createRibbons() {
+      const colors = ['pink', 'blue', 'purple', 'orange'];
+      const ribbonContainer = document.body;
+      
+      for (let i = 0; i < 20; i++) {
+        setTimeout(() => {
+          const ribbon = document.createElement('div');
+          const color = colors[Math.floor(Math.random() * colors.length)];
+          const left = Math.random() * 90 + 5; 
+          const width = Math.random() * 10 + 5; 
+          const height = Math.random() * 100 + 50; 
+          const duration = Math.random() * 10 + 5; 
+          const delay = Math.random() * 5; 
+          
+          ribbon.className = `ribbon ribbon-${color}`;
+          ribbon.style.left = `${left}%`;
+          ribbon.style.width = `${width}px`;
+          ribbon.style.height = `${height}px`;
+          ribbon.style.animation = `ribbon ${duration}s linear ${delay}s infinite`;
+          
+          ribbonContainer.appendChild(ribbon);
+  
+          setTimeout(() => {
+            ribbon.remove();
+          }, (duration + delay) * 1000 + 1000);
+        }, i * 500);
+      }
+    }
+    
+    // 页面加载后创建彩带
+    window.addEventListener('load', createRibbons);
+    
+    // 每隔一段时间重新生成彩带
+    setInterval(createRibbons, 20000);
+
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('contactForm');
+  if (form) {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const name = form.name.value.trim();
+      const message = form.message.value.trim();
+      
+      if (!name) {
+        alert('请输入你的姓名');
+        form.name.focus();
+        return;
+      }
+      
+      if (!message) {
+        alert('请输入留言内容');
+        form.message.focus();
+        return;
+      }
+      
+      // 提交成功
+      alert('留言提交成功！感谢你对Chiikawa的喜爱～');
+      form.reset(); 
+ 
+      const successMsg = document.createElement('div');
+      successMsg.className = 'bg-chiikawa-pink/10 border border-chiikawa-pink text-chiikawa-pink p-4 rounded-lg mt-4 text-center';
+      successMsg.innerHTML = '<i class="fa fa-heart mr-2"></i> 感谢你的留言，Chiikawa会看到的！';
+      form.parentNode.insertBefore(successMsg, form.nextSibling);
+      
+      // 3秒后隐藏提示
+      setTimeout(() => {
+        successMsg.style.opacity = '0';
+        successMsg.style.transition = 'opacity 0.5s ease';
+        setTimeout(() => successMsg.remove(), 500);
+      }, 3000);
+    });
+  }
+});
+    
+    // 确保轮播始终运行
+    const carouselTrack = document.getElementById('carouselTrack');
+    let isPaused = false;
+    
+    // 鼠标悬停暂停
+    carouselTrack.addEventListener('mouseenter', () => {
+      isPaused = true;
+      carouselTrack.style.animationPlayState = 'paused';
+    });
+    
+    // 鼠标离开继续
+    carouselTrack.addEventListener('mouseleave', () => {
+      isPaused = false;
+      carouselTrack.style.animationPlayState = 'running';
+    });
+    
+    // 防止点击事件停止轮播
+    document.querySelectorAll('.carousel-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!isPaused) {
+          carouselTrack.style.animationPlayState = 'running';
+        }
+      });
+    });
+    
+    // 更新轮播指示器状态
+    function updateCarouselIndicators() {
+      const indicators = document.querySelectorAll('.flex.justify-center.mt-8 button');
+      const carouselWidth = document.querySelector('.carousel-item').offsetWidth;
+      const trackWidth = document.querySelector('.carousel-track').offsetWidth;
+      const position = Math.abs(parseInt(getComputedStyle(carouselTrack).transform.split(',')[4]));
+      const totalItems = document.querySelectorAll('.carousel-item').length / 2; 
+      const visibleItems = Math.floor(document.querySelector('.carousel-wrapper').offsetWidth / carouselWidth);
+      const currentSlide = Math.round(position / carouselWidth) % totalItems;
+      
+      indicators.forEach((indicator, index) => {
+        if (index === currentSlide) {
+          indicator.classList.add('opacity-100');
+          indicator.classList.remove('opacity-50');
+        } else {
+          indicator.classList.add('opacity-50');
+          indicator.classList.remove('opacity-100');
+        }
+      });
+    }
+    
+    // 初始化轮播指示器
+    updateCarouselIndicators();
+    
+    // 每2秒更新一次轮播指示器
+    setInterval(updateCarouselIndicators, 2000);
+    
+    // 窗口大小改变时更新轮播指示器
+    window.addEventListener('resize', updateCarouselIndicators);
+
+    function showModal(title, content) {
+      const modal = document.getElementById('myModal');
+      const modalTitle = document.getElementById('modalTitle');
+      const modalContent = document.getElementById('modalContent');
+
+      modalTitle.textContent = title;
+      modalContent.textContent = content;
+      modal.classList.remove('hidden');
+    }
+
+    // 隐藏模态框
+    function hideModal() {
+      const modal = document.getElementById('myModal');
+      modal.classList.add('hidden');
+    }
+  </script>
+</body>
+</html>
